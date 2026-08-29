@@ -2,6 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { ServiceCard } from "@/components/ServiceCard";
 import { SearchBar } from "@/components/SearchBar";
 
+// Reads from the database at request time; never prerender at build.
+export const dynamic = "force-dynamic";
+
 export default async function ServicesPage({ searchParams }: { searchParams: { q?: string; category?: string } }) {
   const q = searchParams.q?.trim();
   const category = searchParams.category;

@@ -152,6 +152,8 @@ async function main() {
     { title: "New: Book driving test slots online", body: "You can now pick your driving test date and time directly after applying." },
     { title: "Reminder: Renew licences before expiry", body: "Avoid late fees by renewing your driving licence at least 30 days before it expires." }
   ];
+  // Idempotent: safe to run on every deploy.
+  await prisma.notice.deleteMany({});
   for (const n of notices) {
     await prisma.notice.create({ data: n });
   }

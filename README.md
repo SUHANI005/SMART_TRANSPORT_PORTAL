@@ -33,19 +33,24 @@ cp .env.example .env
 Edit `.env`:
 
 ```env
-DATABASE_URL="file:./dev.db"          # SQLite, zero-config for local dev
+DATABASE_URL="postgresql://user:pass@localhost:5432/smart_transport?schema=public"
 NEXTAUTH_SECRET="<run: openssl rand -base64 32>"
 NEXTAUTH_URL="http://localhost:3000"
 OPENAI_API_KEY="sk-...your key..."     # required for the 3 OpenAI-backed features
 ```
 
+The app uses **PostgreSQL** (same database locally and in production, so what you
+test is what you deploy). For local dev, run Postgres however you like — e.g.
+`docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16` — and point
+`DATABASE_URL` at it.
+
 > **No OpenAI key?** The app still runs. The Assistant will explain it isn't configured yet, and the Document Checker / Recommendation quiz automatically fall back to simpler built-in logic (heuristic checks / keyword matching) instead of failing.
 
-Push the schema and seed demo data:
+Apply the schema and seed demo data:
 
 ```bash
-npm run db:push
-npm run db:seed
+npm run db:migrate   # applies prisma/migrations to your database
+npm run db:seed      # loads demo users, services, and notices
 ```
 
 Run it:
@@ -72,29 +77,31 @@ All OpenAI calls happen **server-side only**, in API routes — the key is read 
 
 If you want a different model, change the `model:` string in those three files (any OpenAI chat model with vision support works for the document checker).
 
-## 3. Deploying
+## 3. Deploying to Vercel
 
-The easiest path is **Vercel + a hosted Postgres** (SQLite doesn't persist on serverless):
+The schema is already PostgreSQL, and the build command
+(`prisma generate && prisma migrate deploy && tsx prisma/seed.ts && next build`)
+applies migrations and seeds demo data automatically on every deploy — so a fresh
+deploy comes up fully working with no manual database step.
 
 1. Push this repo to GitHub.
-2. In `prisma/schema.prisma`, change:
-   ```prisma
-   datasource db {
-     provider = "postgresql"
-     url      = env("DATABASE_URL")
-   }
-   ```
-3. Create a free Postgres database (e.g. [Neon](https://neon.tech) or [Supabase](https://supabase.com)) and copy its connection string.
-4. Import the repo into [Vercel](https://vercel.com/new), and set these Environment Variables in the Vercel project settings:
-   - `DATABASE_URL` — your Postgres connection string
-   - `NEXTAUTH_SECRET` — a random 32-byte string
+2. Create a Postgres database and copy its connection string:
+   - [Neon](https://neon.tech) or [Supabase](https://supabase.com) (free), **or**
+   - Vercel → your project → **Storage → Create Database → Postgres** (Vercel then
+     sets `DATABASE_URL` for you).
+3. Import the repo into [Vercel](https://vercel.com/new). Under **Settings →
+   Environment Variables**, set (for all environments):
+   - `DATABASE_URL` — your Postgres connection string (skip if you used Vercel Postgres)
+   - `NEXTAUTH_SECRET` — a random 32-byte string (`openssl rand -base64 32`)
    - `NEXTAUTH_URL` — your deployed URL (e.g. `https://your-app.vercel.app`)
-   - `OPENAI_API_KEY` — your OpenAI key
-5. Deploy. Then run once against the production database (locally, with `DATABASE_URL` temporarily pointed at production, or via a one-off Vercel deploy hook):
-   ```bash
-   npx prisma db push
-   npx tsx prisma/seed.ts
-   ```
+   - `OPENAI_API_KEY` — your OpenAI key (optional; AI features degrade gracefully without it)
+4. Deploy. The build creates the tables and loads demo data. Demo logins
+   (password `password123`): `citizen@demo.in`, `officer@demo.in`, `admin@demo.in`.
+
+> **Note:** the build runs `prisma migrate deploy`, which expects a database with
+> no pre-existing app tables (or one whose tables were themselves created by these
+> migrations). If you point it at a database that already has the tables from an
+> old `prisma db push`, drop them first (or use a fresh database).
 
 Document uploads are currently stored as base64 in the database (`Document.dataUrl`) — fine for a demo, but swap for actual object storage (S3, Cloudinary, Supabase Storage) before handling real user files at scale; the upload API route (`app/api/applications/[id]/documents/route.ts`) is the only place that needs to change.
 

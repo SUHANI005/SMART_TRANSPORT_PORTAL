@@ -1,20 +1,20 @@
 // Smart Transport Services Portal - Prisma schema
-// Default provider is sqlite for zero-config local dev.
-// For deployment (Vercel etc.), switch provider to "postgresql" and set
-// DATABASE_URL to a hosted Postgres instance (Neon, Supabase, Railway...).
+// Provider is PostgreSQL so the app runs on serverless hosts (Vercel etc.).
+// Set DATABASE_URL to a hosted Postgres instance (Neon, Supabase, Vercel
+// Postgres, Railway...). For local dev, run any Postgres and point
+// DATABASE_URL at it (see .env.example).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Role, ApplicationStatus, and PaymentStatus are plain strings (not Prisma enums)
-// because SQLite doesn't support native enums. Allowed values are enforced in
-// application code: Role: CITIZEN | OFFICER | ADMIN | DEALER
+// Role, ApplicationStatus, and PaymentStatus are plain strings (not Prisma enums).
+// Allowed values are enforced in application code: Role: CITIZEN | OFFICER | ADMIN | DEALER
 // ApplicationStatus: DRAFT | SUBMITTED | DOCS_PENDING | UNDER_REVIEW | APPROVED | REJECTED
 // PaymentStatus: PENDING | PAID | FAILED
 

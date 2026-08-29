@@ -6,6 +6,10 @@ import { RecommendQuiz } from "@/components/RecommendQuiz";
 import { HeroIllustration } from "@/components/HeroIllustration";
 import { IdCard, Car, Search, Receipt, ClipboardCheck, CalendarCheck, HelpCircle, MapPin, Bell } from "lucide-react";
 
+// This page reads from the database at request time, so it must not be
+// statically prerendered at build time (no DATABASE_URL during build).
+export const dynamic = "force-dynamic";
+
 const QUICK_ACTIONS = [
   { label: "Apply for Driving Licence", href: "/services/apply-driving-licence", icon: IdCard, color: "bg-signal-100 text-ink-800" },
   { label: "Vehicle Services", href: "/services?category=Vehicle%20Services", icon: Car, color: "bg-sky-100 text-sky-600" },

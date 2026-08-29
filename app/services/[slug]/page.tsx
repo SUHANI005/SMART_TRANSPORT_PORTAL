@@ -6,6 +6,9 @@ import { getCategoryPalette } from "@/lib/category-colors";
 import { formatINR } from "@/lib/utils";
 import { CheckCircle2, FileText, Clock, IndianRupee, ArrowRight } from "lucide-react";
 
+// Reads from the database at request time; never prerender at build.
+export const dynamic = "force-dynamic";
+
 export default async function ServiceDetailPage({ params }: { params: { slug: string } }) {
   const service = await prisma.service.findUnique({ where: { slug: params.slug } });
   if (!service) notFound();
