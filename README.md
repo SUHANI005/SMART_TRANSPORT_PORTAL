@@ -40,9 +40,21 @@ OPENAI_API_KEY="sk-...your key..."     # required for the 3 OpenAI-backed featur
 ```
 
 The app uses **PostgreSQL** (same database locally and in production, so what you
-test is what you deploy). For local dev, run Postgres however you like — e.g.
-`docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16` — and point
-`DATABASE_URL` at it.
+test is what you deploy). For local dev, the easiest option is Docker:
+
+```bash
+docker run -d --name stp-pg -p 55432:5432 \
+  -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=smart_transport postgres:16
+```
+
+then set in `.env`:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:55432/smart_transport?schema=public"
+```
+
+(Later runs just need `docker start stp-pg`.) Any other Postgres works too — just
+point `DATABASE_URL` at it.
 
 > **No OpenAI key?** The app still runs. The Assistant will explain it isn't configured yet, and the Document Checker / Recommendation quiz automatically fall back to simpler built-in logic (heuristic checks / keyword matching) instead of failing.
 
@@ -79,10 +91,11 @@ If you want a different model, change the `model:` string in those three files (
 
 ## 3. Deploying to Vercel
 
-The schema is already PostgreSQL, and the build command
-(`prisma generate && prisma migrate deploy && tsx prisma/seed.ts && next build`)
-applies migrations and seeds demo data automatically on every deploy — so a fresh
-deploy comes up fully working with no manual database step.
+The schema is already PostgreSQL. During `npm run build`, `scripts/db-deploy.mjs`
+runs first: **if `DATABASE_URL` is set** it applies migrations (`prisma migrate
+deploy`) and seeds demo data, so a fresh Vercel deploy comes up fully working with
+no manual database step; **if it isn't set** the step is skipped with a warning
+and the build still succeeds (so a local `npm run build` with no `.env` works too).
 
 1. Push this repo to GitHub.
 2. Create a Postgres database and copy its connection string:
