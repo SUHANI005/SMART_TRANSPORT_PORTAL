@@ -1,0 +1,116 @@
+// Smart Transport Services Portal - Prisma schema
+// Default provider is sqlite for zero-config local dev.
+// For deployment (Vercel etc.), switch provider to "postgresql" and set
+// DATABASE_URL to a hosted Postgres instance (Neon, Supabase, Railway...).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Role, ApplicationStatus, and PaymentStatus are plain strings (not Prisma enums)
+// because SQLite doesn't support native enums. Allowed values are enforced in
+// application code: Role: CITIZEN | OFFICER | ADMIN | DEALER
+// ApplicationStatus: DRAFT | SUBMITTED | DOCS_PENDING | UNDER_REVIEW | APPROVED | REJECTED
+// PaymentStatus: PENDING | PAID | FAILED
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("CITIZEN")
+  phone        String?
+  createdAt    DateTime @default(now())
+
+  applications Application[]
+  appointments Appointment[]
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  category    String   // e.g. "Driving Licence", "Vehicle Services", "Permits"
+  name        String
+  nameHi      String?
+  summary     String
+  summaryHi   String?
+  purpose     String
+  whoCanApply String
+  documents   String   // JSON-encoded string array
+  fee         Int      // in INR
+  steps       String   // JSON-encoded string array
+  estTime     String
+  icon        String   @default("FileText")
+  createdAt   DateTime @default(now())
+
+  applications Application[]
+}
+
+model Application {
+  id            String            @id @default(cuid())
+  referenceNo   String            @unique
+  userId        String
+  user          User              @relation(fields: [userId], references: [id])
+  serviceId     String
+  service       Service           @relation(fields: [serviceId], references: [id])
+  status        String            @default("DRAFT")
+  fullName      String?
+  dob           String?
+  address       String?
+  vehicleOrLicenceNo String?
+  notes         String?
+  officerRemark String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  documents    Document[]
+  payment      Payment?
+  appointment  Appointment?
+}
+
+model Document {
+  id            String   @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  label         String
+  fileName      String
+  dataUrl       String   // base64 data URL (demo storage; swap for S3/Cloudinary in production)
+  aiCheck       String?  // JSON-encoded AI document-check result
+  createdAt     DateTime @default(now())
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  applicationId String        @unique
+  application   Application   @relation(fields: [applicationId], references: [id])
+  amount        Int
+  status        String        @default("PENDING")
+  method        String        @default("Mock UPI")
+  transactionId String        @unique
+  createdAt     DateTime      @default(now())
+}
+
+model Appointment {
+  id            String   @id @default(cuid())
+  applicationId String   @unique
+  application   Application @relation(fields: [applicationId], references: [id])
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  officeName    String
+  slotDate      String
+  slotTime      String
+  createdAt     DateTime @default(now())
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  titleHi   String?
+  body      String
+  createdAt DateTime @default(now())
+}

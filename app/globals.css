@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Work Sans', system-ui, sans-serif;
+  background-color: #f5f3ec; /* concrete-100: warm paper, not stark white */
+  color: #14213d;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(20,33,61,0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Oswald', system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+.card {
+  @apply bg-white rounded-2xl border border-ink-100 shadow-sm hover:shadow-md transition-shadow duration-200;
+}
+
+/* Signature element: service cards styled like a transit ticket / permit stub,
+   with a punch-hole and a perforated edge separating the fee stub. */
+.ticket-card {
+  position: relative;
+  background: #fff;
+  border: 1px solid theme('colors.ink.100');
+  border-radius: 1rem;
+  overflow: visible;
+}
+.ticket-card::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -9px;
+  width: 18px;
+  height: 18px;
+  background: #f5f3ec;
+  border: 1px solid theme('colors.ink.100');
+  border-radius: 999px;
+  transform: translateY(-50%);
+}
+.ticket-card::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  right: 84px;
+  border-left: 2px dashed theme('colors.ink.200');
+}
+
+.route-dash {
+  background-image: repeating-linear-gradient(90deg, currentColor 0 8px, transparent 8px 15px);
+  background-size: 100% 3px;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-ink-700 px-5 py-3 text-white font-display font-semibold uppercase tracking-wide text-sm hover:bg-ink-800 active:bg-ink-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-accent {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-signal-400 px-5 py-3 text-ink-800 font-display font-semibold uppercase tracking-wide text-sm hover:bg-signal-500 transition-colors disabled:opacity-50;
+}
+
+.btn-success {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-route-500 px-5 py-3 text-white font-display font-semibold uppercase tracking-wide text-sm hover:bg-route-600 transition-colors disabled:opacity-50;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border-2 border-ink-700 px-5 py-3 text-ink-700 font-display font-semibold uppercase tracking-wide text-sm hover:bg-ink-50 transition-colors;
+}
+
+.input {
+  @apply w-full rounded-lg border border-ink-200 px-4 py-3 text-ink-800 placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-signal-400 focus:border-transparent bg-white;
+}
+
+.label {
+  @apply block text-sm font-semibold text-ink-600 mb-1.5;
+}
+
+.badge {
+  @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold;
+}
+
+.stub-fee {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+}
